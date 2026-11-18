@@ -1,0 +1,386 @@
+{
+  "entities": {
+    "Campaign": {
+      "title": "Campaign",
+      "description": "A persistent Dungeons & Dragons tabletop campaign session.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "setting": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "tone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "lengthMode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "ingredients": {
+          "type": "array"
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 2500
+        },
+        "summaryUpToTurn": {
+          "type": "integer"
+        },
+        "mapTheme": {
+          "type": "string",
+          "enum": ["crypt", "forest", "tavern"]
+        },
+        "currentSceneTitle": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "currentNarration": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "turnNumber": {
+          "type": "integer"
+        },
+        "activeCharacterId": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "completed"]
+        },
+        "inCombat": {
+          "type": "boolean"
+        },
+        "roundNumber": {
+          "type": "integer"
+        },
+        "heroCount": {
+          "type": "integer"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "title",
+        "setting",
+        "tone",
+        "lengthMode",
+        "ingredients",
+        "summary",
+        "summaryUpToTurn",
+        "mapTheme",
+        "currentSceneTitle",
+        "currentNarration",
+        "turnNumber",
+        "activeCharacterId",
+        "status",
+        "inCombat",
+        "roundNumber",
+        "heroCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Hero": {
+      "title": "Hero",
+      "description": "A player character in a campaign party with race, class, stats, spells, look, trait, and board position.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "campaignId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "playerName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "raceId": {
+          "type": "string",
+          "enum": ["human", "high_elf", "mountain_dwarf", "tiefling", "dragonborn", "halfling"]
+        },
+        "classId": {
+          "type": "string",
+          "enum": ["mage", "warrior", "rogue", "cleric", "ranger", "bard"]
+        },
+        "level": {
+          "type": "integer"
+        },
+        "hp": {
+          "type": "integer"
+        },
+        "maxHp": {
+          "type": "integer"
+        },
+        "mana": {
+          "type": "integer"
+        },
+        "maxMana": {
+          "type": "integer"
+        },
+        "ac": {
+          "type": "integer"
+        },
+        "gridX": {
+          "type": "integer"
+        },
+        "gridY": {
+          "type": "integer"
+        },
+        "color": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 20
+        },
+        "xp": {
+          "type": "integer"
+        },
+        "gold": {
+          "type": "integer"
+        },
+        "look": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "rasgo": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "stats": {
+          "type": "object"
+        },
+        "conditions": {
+          "type": "array"
+        },
+        "inventory": {
+          "type": "array"
+        },
+        "knownSpells": {
+          "type": "array"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "campaignId",
+        "ownerId",
+        "playerName",
+        "name",
+        "raceId",
+        "classId",
+        "level",
+        "hp",
+        "maxHp",
+        "mana",
+        "maxMana",
+        "ac",
+        "gridX",
+        "gridY",
+        "color",
+        "xp",
+        "gold",
+        "look",
+        "rasgo",
+        "stats",
+        "conditions",
+        "inventory",
+        "knownSpells",
+        "updatedAt"
+      ]
+    },
+    "Enemy": {
+      "title": "Enemy",
+      "description": "An active monster or NPC token on the tactical battlemap.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "campaignId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "archetype": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "hp": {
+          "type": "integer"
+        },
+        "maxHp": {
+          "type": "integer"
+        },
+        "ac": {
+          "type": "integer"
+        },
+        "gridX": {
+          "type": "integer"
+        },
+        "gridY": {
+          "type": "integer"
+        },
+        "threat": {
+          "type": "string",
+          "enum": ["minion", "elite", "boss"]
+        },
+        "isDefeated": {
+          "type": "boolean"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "campaignId",
+        "ownerId",
+        "name",
+        "archetype",
+        "hp",
+        "maxHp",
+        "ac",
+        "gridX",
+        "gridY",
+        "threat",
+        "isDefeated",
+        "updatedAt"
+      ]
+    },
+    "ChronicleEntry": {
+      "title": "ChronicleEntry",
+      "description": "A narrative, player action, spell cast, or dice roll entry in a campaign's history.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "campaignId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "turnNumber": {
+          "type": "integer"
+        },
+        "speaker": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "role": {
+          "type": "string",
+          "enum": ["dm", "player", "dice", "spell", "system"]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "diceRoll": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "campaignId",
+        "ownerId",
+        "turnNumber",
+        "speaker",
+        "role",
+        "text",
+        "diceRoll",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/campaigns/{campaignId}": {
+      "schema": { "$ref": "#/entities/Campaign" },
+      "description": "Root campaign documents owned by the table host."
+    },
+    "/campaigns/{campaignId}/heroes/{heroId}": {
+      "schema": { "$ref": "#/entities/Hero" },
+      "description": "Party hero sheets and board token coordinates."
+    },
+    "/campaigns/{campaignId}/enemies/{enemyId}": {
+      "schema": { "$ref": "#/entities/Enemy" },
+      "description": "Active enemy tokens and combat stats."
+    },
+    "/campaigns/{campaignId}/chronicles/{entryId}": {
+      "schema": { "$ref": "#/entities/ChronicleEntry" },
+      "description": "Persistent turn-by-turn story log and dice history."
+    }
+  }
+}

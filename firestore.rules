@@ -1,0 +1,279 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isValidStringList(listVal, maxItems) {
+      return listVal is list &&
+        listVal.size() <= maxItems &&
+        (listVal.size() == 0 || (listVal[0] is string && listVal[0].size() <= 80));
+    }
+
+    function isValidCampaign(data, campaignId) {
+      return data.keys().hasAll([
+          'id', 'ownerId', 'title', 'setting', 'tone', 'lengthMode',
+          'ingredients', 'summary', 'summaryUpToTurn', 'mapTheme',
+          'currentSceneTitle', 'currentNarration', 'turnNumber',
+          'activeCharacterId', 'status', 'inCombat', 'roundNumber',
+          'heroCount', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'ownerId', 'title', 'setting', 'tone', 'lengthMode',
+          'ingredients', 'summary', 'summaryUpToTurn', 'mapTheme',
+          'currentSceneTitle', 'currentNarration', 'turnNumber',
+          'activeCharacterId', 'status', 'inCombat', 'roundNumber',
+          'heroCount', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id is string && data.id == campaignId && isValidId(data.id) && data.id.size() <= 64 &&
+        data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 100 &&
+        data.setting is string && data.setting.size() >= 1 && data.setting.size() <= 300 &&
+        data.tone is string && data.tone.size() >= 1 && data.tone.size() <= 50 &&
+        data.lengthMode is string && data.lengthMode.size() >= 1 && data.lengthMode.size() <= 60 &&
+        isValidStringList(data.ingredients, 10) &&
+        data.summary is string && data.summary.size() <= 2500 &&
+        data.summaryUpToTurn is int && data.summaryUpToTurn >= 0 && data.summaryUpToTurn <= 10000 &&
+        data.mapTheme is string && data.mapTheme in ['crypt', 'forest', 'tavern'] &&
+        data.currentSceneTitle is string && data.currentSceneTitle.size() >= 1 && data.currentSceneTitle.size() <= 120 &&
+        data.currentNarration is string && data.currentNarration.size() >= 1 && data.currentNarration.size() <= 4000 &&
+        data.turnNumber is int && data.turnNumber >= 0 && data.turnNumber <= 10000 &&
+        data.activeCharacterId is string && data.activeCharacterId.size() <= 64 &&
+        data.status is string && data.status in ['active', 'completed'] &&
+        data.inCombat is bool &&
+        data.roundNumber is int && data.roundNumber >= 0 && data.roundNumber <= 1000 &&
+        data.heroCount is int && data.heroCount >= 1 && data.heroCount <= 6 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidHeroStats(stats) {
+      return stats is map &&
+        stats.keys().hasAll(['str', 'dex', 'con', 'int', 'wis', 'cha']) &&
+        stats.keys().hasOnly(['str', 'dex', 'con', 'int', 'wis', 'cha']) &&
+        stats.str is int && stats.str >= 1 && stats.str <= 30 &&
+        stats.dex is int && stats.dex >= 1 && stats.dex <= 30 &&
+        stats.con is int && stats.con >= 1 && stats.con <= 30 &&
+        stats.int is int && stats.int >= 1 && stats.int <= 30 &&
+        stats.wis is int && stats.wis >= 1 && stats.wis <= 30 &&
+        stats.cha is int && stats.cha >= 1 && stats.cha <= 30;
+    }
+
+    function isValidHero(data, campaignId, heroId) {
+      return data.keys().hasAll([
+          'id', 'campaignId', 'ownerId', 'playerName', 'name',
+          'raceId', 'classId', 'level', 'hp', 'maxHp', 'mana', 'maxMana',
+          'ac', 'gridX', 'gridY', 'color', 'xp', 'gold', 'look', 'rasgo',
+          'stats', 'conditions', 'inventory', 'knownSpells', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'campaignId', 'ownerId', 'playerName', 'name',
+          'raceId', 'classId', 'level', 'hp', 'maxHp', 'mana', 'maxMana',
+          'ac', 'gridX', 'gridY', 'color', 'xp', 'gold', 'look', 'rasgo',
+          'stats', 'conditions', 'inventory', 'knownSpells', 'updatedAt'
+        ]) &&
+        data.id is string && data.id == heroId && isValidId(data.id) && data.id.size() <= 64 &&
+        data.campaignId is string && data.campaignId == campaignId && isValidId(data.campaignId) && data.campaignId.size() <= 64 &&
+        data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+        data.playerName is string && data.playerName.size() >= 1 && data.playerName.size() <= 60 &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 60 &&
+        data.raceId is string && data.raceId in ['human', 'high_elf', 'mountain_dwarf', 'tiefling', 'dragonborn', 'halfling'] &&
+        data.classId is string && data.classId in ['mage', 'warrior', 'rogue', 'cleric', 'ranger', 'bard'] &&
+        data.level is int && data.level >= 1 && data.level <= 20 &&
+        data.hp is int && data.hp >= 0 && data.hp <= 500 &&
+        data.maxHp is int && data.maxHp >= 1 && data.maxHp <= 500 &&
+        data.mana is int && data.mana >= 0 && data.mana <= 500 &&
+        data.maxMana is int && data.maxMana >= 0 && data.maxMana <= 500 &&
+        data.ac is int && data.ac >= 5 && data.ac <= 35 &&
+        data.gridX is int && data.gridX >= 0 && data.gridX <= 11 &&
+        data.gridY is int && data.gridY >= 0 && data.gridY <= 7 &&
+        data.color is string && data.color.size() >= 4 && data.color.size() <= 20 &&
+        data.xp is int && data.xp >= 0 && data.xp <= 1000000 &&
+        data.gold is int && data.gold >= 0 && data.gold <= 1000000 &&
+        data.look is string && data.look.size() <= 240 &&
+        data.rasgo is string && data.rasgo.size() <= 240 &&
+        isValidHeroStats(data.stats) &&
+        isValidStringList(data.conditions, 8) &&
+        isValidStringList(data.inventory, 20) &&
+        isValidStringList(data.knownSpells, 15) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidEnemy(data, campaignId, enemyId) {
+      return data.keys().hasAll([
+          'id', 'campaignId', 'ownerId', 'name', 'archetype',
+          'hp', 'maxHp', 'ac', 'gridX', 'gridY', 'threat', 'isDefeated', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'campaignId', 'ownerId', 'name', 'archetype',
+          'hp', 'maxHp', 'ac', 'gridX', 'gridY', 'threat', 'isDefeated', 'updatedAt'
+        ]) &&
+        data.id is string && data.id == enemyId && isValidId(data.id) && data.id.size() <= 64 &&
+        data.campaignId is string && data.campaignId == campaignId && isValidId(data.campaignId) && data.campaignId.size() <= 64 &&
+        data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 60 &&
+        data.archetype is string && data.archetype.size() >= 1 && data.archetype.size() <= 40 &&
+        data.hp is int && data.hp >= 0 && data.hp <= 1000 &&
+        data.maxHp is int && data.maxHp >= 1 && data.maxHp <= 1000 &&
+        data.ac is int && data.ac >= 5 && data.ac <= 35 &&
+        data.gridX is int && data.gridX >= 0 && data.gridX <= 11 &&
+        data.gridY is int && data.gridY >= 0 && data.gridY <= 7 &&
+        data.threat is string && data.threat in ['minion', 'elite', 'boss'] &&
+        data.isDefeated is bool &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidChronicleEntry(data, campaignId, entryId) {
+      return data.keys().hasAll([
+          'id', 'campaignId', 'ownerId', 'turnNumber', 'speaker',
+          'role', 'text', 'diceRoll', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'campaignId', 'ownerId', 'turnNumber', 'speaker',
+          'role', 'text', 'diceRoll', 'createdAt'
+        ]) &&
+        data.id is string && data.id == entryId && isValidId(data.id) && data.id.size() <= 64 &&
+        data.campaignId is string && data.campaignId == campaignId && isValidId(data.campaignId) && data.campaignId.size() <= 64 &&
+        data.ownerId is string && data.ownerId == request.auth.uid && data.ownerId.size() <= 128 &&
+        data.turnNumber is int && data.turnNumber >= 0 && data.turnNumber <= 10000 &&
+        data.speaker is string && data.speaker.size() >= 1 && data.speaker.size() <= 60 &&
+        data.role is string && data.role in ['dm', 'player', 'dice', 'spell', 'system'] &&
+        data.text is string && data.text.size() >= 1 && data.text.size() <= 4000 &&
+        data.diceRoll is string && data.diceRoll.size() <= 120 &&
+        data.createdAt is timestamp;
+    }
+
+    function ownsCampaign(campaignId) {
+      return exists(/databases/$(database)/documents/campaigns/$(campaignId)) &&
+        get(/databases/$(database)/documents/campaigns/$(campaignId)).data.ownerId == request.auth.uid;
+    }
+
+    function campaignIsActive(campaignId) {
+      return exists(/databases/$(database)/documents/campaigns/$(campaignId)) &&
+        get(/databases/$(database)/documents/campaigns/$(campaignId)).data.ownerId == request.auth.uid &&
+        get(/databases/$(database)/documents/campaigns/$(campaignId)).data.status != 'completed';
+    }
+
+    match /campaigns/{campaignId} {
+      allow get: if isSignedIn() && isValidId(campaignId) && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() &&
+        isValidId(campaignId) &&
+        isValidCampaign(incoming(), campaignId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isSignedIn() &&
+        isValidId(campaignId) &&
+        existing().ownerId == request.auth.uid &&
+        existing().status != 'completed' &&
+        isValidCampaign(incoming(), campaignId) &&
+        incoming().ownerId == existing().ownerId &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'mapTheme', 'currentSceneTitle', 'currentNarration',
+            'turnNumber', 'activeCharacterId', 'inCombat',
+            'roundNumber', 'updatedAt'
+          ]) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'summary', 'summaryUpToTurn', 'updatedAt'
+          ]) ||
+          (
+            incoming().status == 'completed' &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(campaignId) && existing().ownerId == request.auth.uid;
+
+      match /heroes/{heroId} {
+        allow get: if isSignedIn() && isValidId(campaignId) && isValidId(heroId) && existing().ownerId == request.auth.uid;
+        allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+        allow create: if isSignedIn() &&
+          isValidId(campaignId) &&
+          isValidId(heroId) &&
+          isValidHero(incoming(), campaignId, heroId) &&
+          incoming().updatedAt == request.time &&
+          campaignIsActive(campaignId);
+        allow update: if isSignedIn() &&
+          isValidId(campaignId) &&
+          isValidId(heroId) &&
+          existing().ownerId == request.auth.uid &&
+          isValidHero(incoming(), campaignId, heroId) &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().campaignId == existing().campaignId &&
+          incoming().id == existing().id &&
+          incoming().updatedAt == request.time &&
+          campaignIsActive(campaignId) &&
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['gridX', 'gridY', 'updatedAt']) ||
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'level', 'hp', 'maxHp', 'mana', 'maxMana', 'ac',
+              'gridX', 'gridY', 'xp', 'gold', 'conditions',
+              'inventory', 'knownSpells', 'updatedAt'
+            ])
+          );
+        allow delete: if isSignedIn() && isValidId(campaignId) && isValidId(heroId) && existing().ownerId == request.auth.uid && ownsCampaign(campaignId);
+      }
+
+      match /enemies/{enemyId} {
+        allow get: if isSignedIn() && isValidId(campaignId) && isValidId(enemyId) && existing().ownerId == request.auth.uid;
+        allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+        allow create: if isSignedIn() &&
+          isValidId(campaignId) &&
+          isValidId(enemyId) &&
+          isValidEnemy(incoming(), campaignId, enemyId) &&
+          incoming().updatedAt == request.time &&
+          campaignIsActive(campaignId);
+        allow update: if isSignedIn() &&
+          isValidId(campaignId) &&
+          isValidId(enemyId) &&
+          existing().ownerId == request.auth.uid &&
+          isValidEnemy(incoming(), campaignId, enemyId) &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().campaignId == existing().campaignId &&
+          incoming().id == existing().id &&
+          incoming().updatedAt == request.time &&
+          campaignIsActive(campaignId) &&
+          (
+            incoming().diff(existing()).affectedKeys().hasOnly(['gridX', 'gridY', 'updatedAt']) ||
+            incoming().diff(existing()).affectedKeys().hasOnly(['hp', 'isDefeated', 'gridX', 'gridY', 'updatedAt'])
+          );
+        allow delete: if isSignedIn() && isValidId(campaignId) && isValidId(enemyId) && existing().ownerId == request.auth.uid && ownsCampaign(campaignId);
+      }
+
+      match /chronicles/{entryId} {
+        allow get: if isSignedIn() && isValidId(campaignId) && isValidId(entryId) && existing().ownerId == request.auth.uid;
+        allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+        allow create: if isSignedIn() &&
+          isValidId(campaignId) &&
+          isValidId(entryId) &&
+          isValidChronicleEntry(incoming(), campaignId, entryId) &&
+          incoming().createdAt == request.time &&
+          campaignIsActive(campaignId);
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(campaignId) && isValidId(entryId) && existing().ownerId == request.auth.uid && ownsCampaign(campaignId);
+      }
+    }
+  }
+}

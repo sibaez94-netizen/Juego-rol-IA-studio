@@ -1,0 +1,6 @@
+{
+  "name": "Crónicas del Abismo",
+  "description": "Juego interactivo de Dragones y Mazmorras para mesa y TV con Dungeon Master por voz con Gemini, razas, magia y campañas guardadas en la nube.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
